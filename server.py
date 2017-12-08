@@ -7,7 +7,7 @@ PORT = 8074	# Arbitrary non-privileged port
 
 clientArray = []
 userDictionary = {}
-
+userScore = {}
 wordbankArray = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,6 +137,8 @@ def sign_up(conn):
 		else:
 			#insert password in username
 			userDictionary[username_request] = password_request
+			#insert user into score dictionary list and set to default score of '0'
+			userScore[username_request] = 0
 			conn.sendall('New username and password created!\n\n')
 			break
 	#end of password_request do_while loop

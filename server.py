@@ -22,8 +22,36 @@ print 'Socket bind complete'
 #Start listening on socket
 s.listen(10)
 print 'Socket now listening'
+
+
 #------------------------------------------------------
-#def game_menu(conn):
+#game_menu function: user will be able to choose if they want to be part of a new game or jump onto one going on
+def game_menu(conn):
+	conn.sendall('-Game Menu-\n\n')
+	while True:
+		conn.sendall('1.Start New Game\n2.Get list of the Games\n3.Hall of Fame\n4.Exit\n\n-Choice: ')
+		game_choice = conn.recv(1024)
+		if not game_choice:
+			break
+		elif game_choice[0] == '1':
+			#Start New game
+			break
+		elif game_choice[0] == '2':
+			#Get list of current games
+			break
+		elif game_choice[0] == '3':
+			#hall of fame
+			break
+		elif game_choice[0] == '4':
+			#Exit
+			conn.sendall('See you next time!\n')
+			#TODO: sign out from server
+			clientArray.remove(conn)
+			break
+		else:
+			conn.sendall('\nERROR: Enter valid choice\n\n')
+	#came out of loop
+
 #------------------------------------------------------
 
 #------------------------------------------------------
@@ -137,10 +165,12 @@ def clientthread(conn):
 			break
 		elif choice[0] == '4':
 			#Exit
-			conn.sendall('Thanks for playing')
+			conn.sendall('See you next time!\n')
 			#TODO: sign out from server
 			clientArray.remove(conn)
-			break	
+			break
+		else:
+			conn.sendall('\nERROR: Enter valid choice\n\n')
 	#came out of loop
 	conn.close()
 

@@ -22,11 +22,35 @@ print 'Socket bind complete'
 #Start listening on socket
 s.listen(10)
 print 'Socket now listening'
+#------------------------------------------------------
+#def game_menu(conn):
+#------------------------------------------------------
 
 #------------------------------------------------------
 #login function:
-#def login(conn):
-	
+def login(conn):
+	conn.sendall('-Login-\n\n')
+	while True:
+		#request username
+		conn.sendall('(\'!q\' to go back to main menu)\nUsername: ')
+		username_entry = conn.recv(1024)
+		username_entry = username_entry.rstrip()
+		if username_entry == '!q':
+			clientthread(conn)
+		#request password
+		conn.sendall('Password: ')
+		password_entry = conn.recv(1024)
+		password_entry = password_entry.rstrip()
+		if password_entry == '!q':
+			clientthread(conn)
+		#TODO: check for valid username
+		if userDictionary[username_entry] == password_entry:
+			conn.sendall('\nWelcome, ' + username_entry + '\n\n')
+			break
+		else:
+			conn.sendall('\nInvalid password. Please try again\n\n')
+	#end of login do_while loop
+	#TODO: game screen 
 #end of login()
 #------------------------------------------------------
 
@@ -55,33 +79,35 @@ def sign_up(conn):
 		username_request = username_request.rstrip()
 		#TODO: check to see if username is valid/availble
 		if not username_request:
-			conn.sendall('ERROR: Your username is invalid. Please type again or try another one.\n')
+			conn.sendall('\nERROR: Your username is invalid. Please type again or try another one.\n')
 		elif username_request == '!q':
 			#go back to main_menu
 			clientthread(conn)
 		else:
 			#TODO: check for special characters (i.e.' ','/','.',etc.). If in username, invalid
 			if userExist(username_request):
-				conn.sendall('ERROR: Your username already exist. Please try another username.\n')
+				conn.sendall('\nERROR: Your username already exist. Please try another username.\n')
 			else:
 				break
 	#end of username_request do_while loop
 	while True:
+		#**password cannot end with a ' '
 		conn.sendall('Type in a new password (\'!q\' to go back to main menu): ')
 		password_request = conn.recv(1024)
 		password_request = password_request.rstrip()
 		if not password_request:
-			conn.sendall('ERROR: Your password is invalid, Please type again or try another one.\n')
+			conn.sendall('\nERROR: Your password is invalid, Please type again or try another one.\n')
 		elif password_request == '!q':
 			#go back to main_menu
 			clientthread(conn)
 		else:
 			#insert password in username
 			userDictionary[username_request] = password_request
-			conn.sendall('New username and password created!\n')
+			conn.sendall('New username and password created!\n\n')
 			break
 	#end of password_request do_while loop
-	#TODO: to go login()
+	#go to login()
+	login(conn)
 #end of sign_up()
 #-------------------------------------------------------
 
@@ -90,11 +116,11 @@ def sign_up(conn):
 #Function for handling connections, This will be used to create threads
 def clientthread(conn):
 	#Sending message to connected client
-	conn.send('Welcome to Hangman!\n') #send only takes string
+	conn.sendall('***Welcome to Hangman!***\n') #send only takes string
 	
 	#infinite loop so that function do not terminate and thread do not end.
 	while True:
-		conn.sendall('1.Login\n2.Make New User\n3.Hall of Fame\n4.Exit\n')
+		conn.sendall('1.Login\n2.Make New User\n3.Hall of Fame\n4.Exit\n\n-Choice: ')
 		choice = conn.recv(1024)
 		if not choice:
 			break

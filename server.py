@@ -126,6 +126,7 @@ def clientthread(conn):
 			break
 		elif choice[0] == '1':
 			#login
+			login(conn)
 			break
 		elif choice[0] == '2':
 			#make new user

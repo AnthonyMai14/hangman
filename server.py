@@ -8,6 +8,7 @@ PORT = 8074	# Arbitrary non-privileged port
 clientArray = []
 userDictionary = {}
 userScore = {}
+highScorer = {}
 wordbankArray = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,6 +29,8 @@ print 'Socket now listening'
 #------------------------------------------------------
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-')
+	for val in len(userScore):
+		if (val < 10
 #end hall_of_fame()	
 #------------------------------------------------------
 

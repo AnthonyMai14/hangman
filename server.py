@@ -50,7 +50,7 @@ def login(conn):
 		else:
 			conn.sendall('\nInvalid password. Please try again\n\n')
 	#end of login do_while loop
-	#TODO: game screen 
+	#TODO: game screen
 #end of login()
 #------------------------------------------------------
 

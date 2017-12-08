@@ -8,6 +8,8 @@ PORT = 8074	# Arbitrary non-privileged port
 clientArray = []
 userDictionary = {}
 
+wordbankArray = []
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
 
@@ -23,8 +25,12 @@ print 'Socket bind complete'
 s.listen(10)
 print 'Socket now listening'
 
-
 #------------------------------------------------------
+def hall_of_fame(conn):
+	conn.sendall('-Hall Of Fame-')
+#end hall_of_fame()	
+#------------------------------------------------------
+
 #game_menu function: user will be able to choose if they want to be part of a new game or jump onto one going on
 def game_menu(conn):
 	conn.sendall('-Game Menu-\n\n')
@@ -168,7 +174,7 @@ def clientthread(conn):
 			conn.sendall('See you next time!\n')
 			#TODO: sign out from server
 			clientArray.remove(conn)
-			break
+			break default value
 		else:
 			conn.sendall('\nERROR: Enter valid choice\n\n')
 	#came out of loop
@@ -176,7 +182,7 @@ def clientthread(conn):
 
 #now keep talking with the client
 while 1:
-	#wait to accept a connection - blocking call
+	#wait to ac default valuecept a connection - blocking call
 	conn, addr = s.accept()
 	#display client information
 	print 'Connected with ' + addr[0] + ':' + str(addr[1])

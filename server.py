@@ -6,9 +6,9 @@ HOST = ''	# Symobolic name meaning all avaiable interfaces
 PORT = 8074	# Arbitrary non-privileged port
 
 clientArray = []
-userDictionary = {}
-userScore = {}
-highScorer = {}
+userDictionary = {} #username: password
+userScore = {} #username: score
+highScorer = [10] #username (by rank)
 wordbankArray = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,8 +29,12 @@ print 'Socket now listening'
 #------------------------------------------------------
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-')
-	for val in len(userScore):
-		if (val < 10
+	for val in len(highScorer):
+		username = highScorer[val]
+		score = userScore[username]
+		conn.sendall(str(val) + '. ' + highScorer[val] + ': ' + score + '\n')
+	
+			
 #end hall_of_fame()	
 #------------------------------------------------------
 
@@ -43,14 +47,14 @@ def game_menu(conn):
 		if not game_choice:
 			break
 		elif game_choice[0] == '1':
-			#Start New game
+			#Start New game. Return flag: determin if break or not
 			break
 		elif game_choice[0] == '2':
-			#Get list of current games
+			#Get list of current games. Return flag: determin if break or not
 			break
 		elif game_choice[0] == '3':
 			#hall of fame
-			break
+			hall_of_fame(conn)
 		elif game_choice[0] == '4':
 			#Exit
 			conn.sendall('See you next time!\n')
@@ -173,7 +177,7 @@ def clientthread(conn):
 			break
 		elif choice[0] == '3':
 			#hall of fame
-			break
+			hall_of_fame(conn)
 		elif choice[0] == '4':
 			#Exit
 			conn.sendall('See you next time!\n')

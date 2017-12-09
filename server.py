@@ -3,7 +3,7 @@ import sys
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1115	# Arbitrary non-privileged port
+PORT = 1116	# Arbitrary non-privileged port
 
 clientArray = []
 userDictionary = {} #username: password
@@ -105,7 +105,7 @@ def login(conn):
 		password_entry = password_entry.rstrip()
 		if password_entry == '!q':
 			clientthread(conn)
-		if userExist(user_entry) and userDictionary[username_entry] == password_entry:
+		if userExist(username_entry) and userDictionary[username_entry] == password_entry:
 			conn.sendall('\nWelcome, ' + username_entry + '\n\n')
 			break
 		else:

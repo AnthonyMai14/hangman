@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1117	# Arbitrary non-privileged port
+PORT = 1112	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -95,16 +95,16 @@ class Game:
 	#end game_start()
 
 	def setDifficulty(self):
-		if difficulty == 2:
-			guessesLeft = len(word) * 2
-		elif difficulty == 3:
-			guessesLeft = len(word)
+		if self.difficulty == 2:
+			self.guessesLeft = len(self.word) * 2
+		elif self.difficulty == 3:
+			self.guessesLeft = len(self.word)
 		else:
 			#cannot detect bug because 'difficulty == 1' is not check. Assume that 'difficulty == 1' is true
-			guessesLeft = len(word) * 3
+			self.guessesLeft = len(self.word) * 3
 	#end setDifficulty
 	
-	def existInCorrectGuess(guess):
+	def existInCorrectGuess(self, guess):
 		for letter in range(len(self.correctGuess)):
 			if self.correctGuess[letter] == guess:
 				return letter
@@ -113,15 +113,16 @@ class Game:
 		return -1
 	#end def
 
-	def findletter(guess):
+	def findletter(self, guess):
 		for letter in range(len(self.word)):
-			if self.word[letter] == guess and existInCorrectGuess(correctGuess) == -1:
-				correctGuess[letter] = guess
+			if self.word[letter] == guess and self.existInCorrectGuess(self.correctGuess) == -1:
+				self.correctGuess = self.correctGuess.replace(letter,guess)
 				return letter
 			#end if
 		#end for
 		return -1
 	def begin(self):
+		print str(self.guessesLeft) #TODO: delete after use TODO
 		while self.guessesLeft != 0 and self.correctGuess != self.word: 
 			#print correct guess/incorrect guesses/ on menu
 			for player in self.playersInGameList:
@@ -138,23 +139,23 @@ class Game:
 				#end for name in len(playerInGameList)
 			#end for player in playersInGameList
 			#TODO: wait response from player's who turn it is
-			current_player = self.playerInGameList[playerTurn]
+			current_player = self.playersInGameList[self.playerTurn]
 			conn = current_player.conn
 			guess = conn.recv(1024)
 			guess = guess.rstrip()
 			if len(guess) == 1:
 				#find if guess is in word // duplicate guess
-				if findletter(guess) != -1:
+				if self.findletter(guess) != -1:
 					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
 					current_player.points = current_player.points + 1
 				else:
-					incorrectGuess = incorrectGuess + guess
-					guessesLeft = guessLeft - 1
+					self.incorrectGuess = self.incorrectGuess + guess
+					self.guessesLeft = self.guessesLeft - 1
 					#change players
-					if playerTurn + 1 == len(self.playerInGameList):
-						playerTurn = 0
+					if self.playerTurn + 1 == len(self.playersInGameList):
+						self.playerTurn = 0
 					else:
-						playerTurn = playerTurn + 1 
+						self.playerTurn = self.playerTurn + 1 
 		#	else:
 				#TODO: if guess is correct, add point worth to the length of word in addition to the points already have
 				#TODO: if incorrect, get kicked out of game 
@@ -163,7 +164,7 @@ class Game:
 	def start(self, conn):
 		self.start_menu(conn)
 		self.randomWord()
-		self.setDifficulty
+		self.setDifficulty()
 		#generate '_' for users
 		for letter in range(len(self.word)):
 			self.correctGuess = self.correctGuess + '_'

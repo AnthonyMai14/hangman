@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1112	# Arbitrary non-privileged port
+PORT = 1111	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password

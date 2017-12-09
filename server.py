@@ -92,7 +92,7 @@ class Game:
 			else:
 				conn.sendall('Invalid choice. Please try again')
 		#end game_start_choice do_while loop
-	conn.sendall('\n')
+		conn.sendall('\n')
 	#end game_start()
 
 	def start(self, conn):

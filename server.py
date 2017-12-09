@@ -48,6 +48,7 @@ class Game:
 		self.difficulty = 1 #default difficulty to Easy (1)
 		self.word = ''
 		self.playersInGameList = []
+		self.playersInGameList.append(newPlayer)
 
 		self.correctGuess = '' 
 		self.incorrectGuess = ''
@@ -59,13 +60,14 @@ class Game:
 			while True:
 				rand_index = random.randint(0, len(wordbankList))
 				potential_word = wordbankList[rand_index-1]
-				
 				for game_index in range(len(activeGameList)):
 					if activeGameList[game_index].word != potential_word:
 						self.word = potential_word
 						break
 					#end if activeGameList[game_index].word != potential_word:
  				#end for game_index in range(len(activeGameList)):
+				if self.word != '':
+					break
 			#end while True
 	
 	def start_menu(self, conn):
@@ -102,15 +104,15 @@ class Game:
 			guessesLeft = len(word) * 3
 	#end setDifficulty
 	
-	def begin():
+	def begin(self):
 		#print correct guess/incorrect guesses/ on menu
-		for player in playersInGameList:
-			conn = playersInGameList[players].conn
-			conn.sendall(correctGuess + '\n' + 'Incorrect letters: ' + incorrectGuess + '\n')		
+		for player in self.playersInGameList:
+			conn = player.conn
+			conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\n')		
 			#TODO: print players //sub-TODO: print which players turn
-			for name in len(playersInGameList):
-				conn.sendall(playersInGameList[name].username + ' ' + playersInGameList[name].points)
-				if name == playerTurn:
+			for name in range(len(self.playersInGameList)):
+				conn.sendall(self.playersInGameList[name].username + ' ' + str(self.playersInGameList[name].points))
+				if name == self.playerTurn:
 					#if the name of the player is here, insert '*' at the end
 					conn.sendall('*')
 				#end if name == playerTurn
@@ -124,10 +126,10 @@ class Game:
 		self.randomWord()
 		self.setDifficulty
 		#generate '_' for users
-		for letter in len(word):
-			correctGuess = correctGuess + '_'
+		for letter in range(len(self.word)):
+			self.correctGuess = self.correctGuess + '_'
 		#end for letter in len(word)
-		self.begin(conn)
+		self.begin()
 	#end game_start()
 #end of class Game
 #------------------------------------------------------

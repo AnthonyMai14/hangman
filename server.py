@@ -72,7 +72,7 @@ class Game:
 	
 	def start_menu(self, conn):
 		while True:
-			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard\n')
+			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard\n-Choice: ')
 			game_start_choice = conn.recv(1024)
 			if not game_start_choice:
 				conn.sendall('ERROR: NULL input!\n')

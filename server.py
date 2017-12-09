@@ -3,7 +3,7 @@ import sys
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1114	# Arbitrary non-privileged port
+PORT = 1115	# Arbitrary non-privileged port
 
 clientArray = []
 userDictionary = {} #username: password
@@ -75,6 +75,20 @@ def game_menu(conn):
 #------------------------------------------------------
 
 #------------------------------------------------------
+#userExist function: search to see if user_request exist
+#if exist, return 1. Else return 0
+def userExist(user_request):
+	for username in userDictionary:
+		if username == user_request:
+			return 1
+		#end if username == user_request
+	#end for username in userDictionary
+	return 0
+#end of userExist()
+#------------------------------------------------------
+
+
+#------------------------------------------------------
 #login function:
 def login(conn):
 	conn.sendall('-Login-\n\n')
@@ -91,30 +105,15 @@ def login(conn):
 		password_entry = password_entry.rstrip()
 		if password_entry == '!q':
 			clientthread(conn)
-		#TODO: check for valid username
-		if userDictionary[username_entry] == password_entry:
+		if userExist(user_entry) and userDictionary[username_entry] == password_entry:
 			conn.sendall('\nWelcome, ' + username_entry + '\n\n')
 			break
 		else:
-			conn.sendall('\nInvalid password. Please try again\n\n')
+			conn.sendall('\nInvalid username or password. Please try again\n\n')
 	#end of login do_while loop
 	game_menu(conn)
 #end of login()
 #------------------------------------------------------
-
-#------------------------------------------------------
-#userExist function: search to see if user_request exist
-#if exist, return 1. Else return 0
-def userExist(user_request):
-	for username in userDictionary:
-		if username == user_request:
-			return 1
-		#end if username == user_request
-	#end for username in userDictionary
-	return 0
-#end of userExist()
-#------------------------------------------------------
-
 
 #-------------------------------------------------------
 #sign_up function: Ask for username and password. Once confirm valid,

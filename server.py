@@ -11,7 +11,7 @@ userDictionary = {} #username: password
 userScoreDictionary = {} #username: score
 highScorerList = ['']*10 #username (by rank)
 
-wordbankList = ['uc riverside','anthony mai', 'san diego', 'computer science'] #default values
+wordbankList = ['ucr','anthony', 'cs', 'sd'] #default values
 activeGameList = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,31 +31,29 @@ print 'Socket now listening'
 
 #------------------------------------------------------
 class Player:
-	def __init__(self, username):
+	def __init__(self, conn, username):
+		self.conn = conn
 		self.username = username
 		self.active = 1 #1 is active, 0 is not-active/no longer is/should be in game
 		self.points = 0 #default points is zero for each new game/join game
+	
 #end of class Player 
 #------------------------------------------------------
 
 
 #------------------------------------------------------
 class Game:
-	
-	guessesLeft = 0
-	wordGuessList = []
-	playerDictionary = {} #val is score of each player
-	
+		
 	def __init__(self, newPlayer):
 		self.difficulty = 1 #default difficulty to Easy (1)
-		self.word = ""
-		self.incorrectGuessesList = []
-		PlayerTurn = newPlayer #indicated player turn through key
-				
-		self.playerDictionary = {}
-		self.playerDictionary[newPlayer] = 0
-		#TODO: create the number of guess depending on the difficulty
-					
+		self.word = ''
+		self.playersInGameList = []
+
+		self.correctGuess = '' 
+		self.incorrectGuess = ''
+		self.guessesLeft = 0
+		self.playerTurn = 0
+	
 	def randomWord(self):
 			#potential inifinite loop if len(activeGameList) == len(wordBankList)
 			while True:
@@ -94,17 +92,46 @@ class Game:
 		#end game_start_choice do_while loop
 	#end game_start()
 
+	def setDifficulty(self):
+		if difficulty == 2:
+			guessesLeft = len(word) * 2
+		elif difficulty == 3:
+			guessesLeft = len(word)
+		else:
+			#cannot detect bug because 'difficulty == 1' is not check. Assume that 'difficulty == 1' is true
+			guessesLeft = len(word) * 3
+	#end setDifficulty
+	
+	def begin():
+		#print correct guess/incorrect guesses/ on menu
+		for player in playersInGameList:
+			conn = playersInGameList[players].conn
+			conn.sendall(correctGuess + '\n' + 'Incorrect letters: ' + incorrectGuess + '\n')		
+			#TODO: print players //sub-TODO: print which players turn
+			for name in len(playersInGameList):
+				conn.sendall(playersInGameList[name].username + ' ' + playersInGameList[name].points)
+				if name == playerTurn:
+					#if the name of the player is here, insert '*' at the end
+					conn.sendall('*')
+				#end if name == playerTurn
+				conn.sendall('\n')
+			#end for name in len(playerInGameList)
+		
+		#end for player in playersInGameList
+	#end begin()
 	def start(self, conn):
 		self.start_menu(conn)
 		self.randomWord()
-		#TODO: self.game_begin(conn)
+		self.setDifficulty
+		#generate '_' for users
+		for letter in len(word):
+			correctGuess = correctGuess + '_'
+		#end for letter in len(word)
+		self.begin(conn)
 	#end game_start()
 #end of class Game
 #------------------------------------------------------
 
-
-#------------------------------------------------------
-#------------------------------------------------------
 
 #------------------------------------------------------
 #hall of fame function: print out the top 10 scorers. If not present, will print out empty list
@@ -135,7 +162,8 @@ def game_menu(conn, player):
 			break
 		elif game_choice[0] == '1':
 			#Start New game. Return flag: determin if break or not
-			if len(activeGameList) != len(wordbankList):
+			activeGameList_length = len(activeGameList)
+			if activeGameList_length != len(wordbankList) or activeGameList_length == 0:
 				newGame = Game(player)
 				activeGameList.append(newGame)
 				newGame.start(conn)
@@ -194,8 +222,8 @@ def login(conn):
 		else:
 			conn.sendall('\nInvalid username or password. Please try again\n\n')
 	#end of login do_while loop
-	player = Player(username_entry) #set new instance of player 
-	game_menu(conn,player)
+	player = Player(conn, username_entry) #set new instance of player 
+	game_menu(conn,player) #conn in paramter because want to make game_menu light when trying to print to conn
 #end of login()
 #------------------------------------------------------
 

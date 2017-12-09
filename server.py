@@ -1,16 +1,18 @@
 import socket
 import sys
+import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
 PORT = 1116	# Arbitrary non-privileged port
 
-clientArray = []
+clientList = []
 userDictionary = {} #username: password
 userScoreDictionary = {} #username: score
-highScorerArray = ['']*10 #username (by rank)
+highScorerList = ['']*10 #username (by rank)
 
-wordbankArray = []
+wordbankList = ['uc riverside','anthony mai', 'san diego', 'computer science'] #default values
+activeGameList = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
@@ -28,34 +30,116 @@ s.listen(10)
 print 'Socket now listening'
 
 #------------------------------------------------------
+class Player:
+	def __init__(self, username):
+		self.username = username
+		self.active = 1 #1 is active, 0 is not-active/no longer is/should be in game
+		self.points = 0 #default points is zero for each new game/join game
+#end of class Player 
+#------------------------------------------------------
+
+
+#------------------------------------------------------
+class Game:
+	
+	guessesLeft = 0
+	wordGuessList = []
+	playerDictionary = {} #val is score of each player
+	
+	def __init__(self, newPlayer):
+		self.difficulty = 1 #default difficulty to Easy (1)
+		self.word = ""
+		self.incorrectGuessesList = []
+		PlayerTurn = newPlayer #indicated player turn through key
+				
+		self.playerDictionary = {}
+		self.playerDictionary[newPlayer] = 0
+		#TODO: create the number of guess depending on the difficulty
+					
+	def randomWord(self):
+			#potential inifinite loop if len(activeGameList) == len(wordBankList)
+			while True:
+				rand_index = random.randint(0, range(len(wordbankList)-1))
+				potential_word = wordbankList[rand_index]
+				
+				for game_index in range(len(activeGameList)):
+					if activeGameList[game_index].word != potential_word:
+						self.word = potential_word
+						break
+					#end if activeGameList[game_index].word != potential_word:
+ 				#end for game_index in range(len(activeGameList)):
+			#end while True
+	
+	def start_menu(self, conn):
+		while True:
+			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard')
+			game_start_choice = conn.recv(1024)
+			if not game_start_choice:
+				conn.sendall('ERROR: NULL input!\n')
+				break
+			elif game_start_choice[0] == '1':
+				if len(activeGameList) != len(wordbankList):
+					self.difficulty = 1
+				break
+			elif game_start_choice[0] == '2':
+				if len(activeGameList) != len(wordbankList):
+					self.difficulty = 2
+				break
+			elif game_start_choice[0] == '3':
+				if len(activeGameList) != len(wordbankList):
+					self.difficulty = 3
+				break
+			else:
+				conn.sendall('Invalid choice. Please try again')
+		#end game_start_choice do_while loop
+	conn.sendall('\n')
+	#end game_start()
+
+	def start(self, conn):
+		self.start_menu(conn)
+		self.randomWord()
+		#TODO: self.game_begin(conn)
+	#end game_start()
+#end of class Game
+#------------------------------------------------------
+
+
+#------------------------------------------------------
+#------------------------------------------------------
+
+#------------------------------------------------------
 #hall of fame function: print out the top 10 scorers. If not present, will print out empty list
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-\n')
-	for val in range(len(highScorerArray)):
+	for val in range(len(highScorerList)):
 		conn.sendall(str(val+1) + '. ')
-		username = highScorerArray[val]
+		username = highScorerList[val]
 		if username:			 
 			print "in if loop\n"
 			score = userScoreDictionary[username]
-			conn.sendall(highScorerArray[val] + ': ' + score + '\n')
+			conn.sendall(highScorerList[val] + ': ' + score + '\n')
 		else:
 			conn.sendall('\n')
 	conn.sendall('\n')
-	#end for val in highScorerArray			
+	#end for val in highScorerList			
 #end hall_of_fame()	
 #------------------------------------------------------
 
 #game_menu function: user will be able to choose if they want to be part of a new game or jump onto one going on
-def game_menu(conn):
+def game_menu(conn, player):
 	conn.sendall('-Game Menu-\n\n')
 	while True:
 		conn.sendall('1.Start New Game\n2.Get list of the Games\n3.Hall of Fame\n4.Exit\n\n-Choice: ')
 		game_choice = conn.recv(1024)
 		if not game_choice:
+			conn.sendall('ERROR: NULL input!\n')
 			break
 		elif game_choice[0] == '1':
 			#Start New game. Return flag: determin if break or not
-			break
+			if len(activeGameList) != len(wordbankList):
+				newGame = Game(player)
+				activeGameList.append(newGame)
+				newGame.start(conn)
 		elif game_choice[0] == '2':
 			#Get list of current games. Return flag: determin if break or not
 			break
@@ -65,8 +149,7 @@ def game_menu(conn):
 		elif game_choice[0] == '4':
 			#Exit
 			conn.sendall('See you next time!\n')
-			#TODO: sign out from server
-			clientArray.remove(conn)
+			clientList.remove(conn)
 			break
 		else:
 			conn.sendall('\nERROR: Enter valid choice\n\n')
@@ -92,6 +175,7 @@ def userExist(user_request):
 #login function:
 def login(conn):
 	conn.sendall('-Login-\n\n')
+	username_entry = ""
 	while True:
 		#request username
 		conn.sendall('(\'!q\' to go back to main menu)\nUsername: ')
@@ -111,7 +195,8 @@ def login(conn):
 		else:
 			conn.sendall('\nInvalid username or password. Please try again\n\n')
 	#end of login do_while loop
-	game_menu(conn)
+	player = Player(username_entry) #set new instance of player 
+	game_menu(conn,player)
 #end of login()
 #------------------------------------------------------
 
@@ -188,7 +273,7 @@ def clientthread(conn):
 			#Exit
 			conn.sendall('See you next time!\n')
 			#TODO: sign out from server
-			clientArray.remove(conn)
+			clientList.remove(conn)
 			break
 		else:
 			conn.sendall('\nERROR: Enter valid choice\n\n')
@@ -201,7 +286,7 @@ while 1:
 	conn, addr = s.accept()
 	#display client information
 	print 'Connected with ' + addr[0] + ':' + str(addr[1])
-	clientArray.append(conn)
+	clientList.append(conn)
 	#start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
 	start_new_thread(clientthread ,(conn,))
 

@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1116	# Arbitrary non-privileged port
+PORT = 1117	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -104,22 +104,61 @@ class Game:
 			guessesLeft = len(word) * 3
 	#end setDifficulty
 	
+	def existInCorrectGuess(guess):
+		for letter in range(len(self.correctGuess)):
+			if self.correctGuess[letter] == guess:
+				return letter
+			#end if
+		#end for
+		return -1
+	#end def
+
+	def findletter(guess):
+		for letter in range(len(self.word)):
+			if self.word[letter] == guess and existInCorrectGuess(correctGuess) == -1:
+				correctGuess[letter] = guess
+				return letter
+			#end if
+		#end for
+		return -1
 	def begin(self):
-		#print correct guess/incorrect guesses/ on menu
-		for player in self.playersInGameList:
-			conn = player.conn
-			conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\n')		
-			#TODO: print players //sub-TODO: print which players turn
-			for name in range(len(self.playersInGameList)):
-				conn.sendall(self.playersInGameList[name].username + ' ' + str(self.playersInGameList[name].points))
-				if name == self.playerTurn:
-					#if the name of the player is here, insert '*' at the end
-					conn.sendall('*')
-				#end if name == playerTurn
-				conn.sendall('\n')
-			#end for name in len(playerInGameList)
-		
-		#end for player in playersInGameList
+		while self.guessesLeft != 0 and self.correctGuess != self.word: 
+			#print correct guess/incorrect guesses/ on menu
+			for player in self.playersInGameList:
+				conn = player.conn
+				conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\n')		
+				#print players // print which players turn
+				for name in range(len(self.playersInGameList)):
+					conn.sendall(self.playersInGameList[name].username + ' ' + str(self.playersInGameList[name].points))
+					if name == self.playerTurn:
+						#name of player's turn, insert '*' at the end
+						conn.sendall('*')
+					#end if name == playerTurn
+					conn.sendall('\n')
+				#end for name in len(playerInGameList)
+			#end for player in playersInGameList
+			#TODO: wait response from player's who turn it is
+			current_player = self.playerInGameList[playerTurn]
+			conn = current_player.conn
+			guess = conn.recv(1024)
+			guess = guess.rstrip()
+			if len(guess) == 1:
+				#find if guess is in word // duplicate guess
+				if findletter(guess) != -1:
+					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
+					current_player.points = current_player.points + 1
+				else:
+					incorrectGuess = incorrectGuess + guess
+					guessesLeft = guessLeft - 1
+					#change players
+					if playerTurn + 1 == len(self.playerInGameList):
+						playerTurn = 0
+					else:
+						playerTurn = playerTurn + 1 
+		#	else:
+				#TODO: if guess is correct, add point worth to the length of word in addition to the points already have
+				#TODO: if incorrect, get kicked out of game 
+		#end while guessesLeft != 0 .....
 	#end begin()
 	def start(self, conn):
 		self.start_menu(conn)

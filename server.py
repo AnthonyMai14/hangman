@@ -59,8 +59,8 @@ class Game:
 	def randomWord(self):
 			#potential inifinite loop if len(activeGameList) == len(wordBankList)
 			while True:
-				rand_index = random.randint(0, range(len(wordbankList)-1))
-				potential_word = wordbankList[rand_index]
+				rand_index = random.randint(0, len(wordbankList))
+				potential_word = wordbankList[rand_index-1]
 				
 				for game_index in range(len(activeGameList)):
 					if activeGameList[game_index].word != potential_word:
@@ -72,7 +72,7 @@ class Game:
 	
 	def start_menu(self, conn):
 		while True:
-			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard')
+			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard\n')
 			game_start_choice = conn.recv(1024)
 			if not game_start_choice:
 				conn.sendall('ERROR: NULL input!\n')
@@ -92,7 +92,6 @@ class Game:
 			else:
 				conn.sendall('Invalid choice. Please try again')
 		#end game_start_choice do_while loop
-		conn.sendall('\n')
 	#end game_start()
 
 	def start(self, conn):

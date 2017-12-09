@@ -3,12 +3,13 @@ import sys
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 8074	# Arbitrary non-privileged port
+PORT = 1114	# Arbitrary non-privileged port
 
 clientArray = []
 userDictionary = {} #username: password
-userScore = {} #username: score
-highScorer = [10] #username (by rank)
+userScoreDictionary = {} #username: score
+highScorerArray = ['']*10 #username (by rank)
+
 wordbankArray = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,14 +28,20 @@ s.listen(10)
 print 'Socket now listening'
 
 #------------------------------------------------------
+#hall of fame function: print out the top 10 scorers. If not present, will print out empty list
 def hall_of_fame(conn):
-	conn.sendall('-Hall Of Fame-')
-	for val in len(highScorer):
-		username = highScorer[val]
-		score = userScore[username]
-		conn.sendall(str(val) + '. ' + highScorer[val] + ': ' + score + '\n')
-	
-			
+	conn.sendall('-Hall Of Fame-\n')
+	for val in range(len(highScorerArray)):
+		conn.sendall(str(val+1) + '. ')
+		username = highScorerArray[val]
+		if username:			 
+			print "in if loop\n"
+			score = userScoreDictionary[username]
+			conn.sendall(highScorerArray[val] + ': ' + score + '\n')
+		else:
+			conn.sendall('\n')
+	conn.sendall('\n')
+	#end for val in highScorerArray			
 #end hall_of_fame()	
 #------------------------------------------------------
 
@@ -91,7 +98,7 @@ def login(conn):
 		else:
 			conn.sendall('\nInvalid password. Please try again\n\n')
 	#end of login do_while loop
-	#TODO: game screen
+	game_menu(conn)
 #end of login()
 #------------------------------------------------------
 
@@ -145,7 +152,7 @@ def sign_up(conn):
 			#insert password in username
 			userDictionary[username_request] = password_request
 			#insert user into score dictionary list and set to default score of '0'
-			userScore[username_request] = 0
+			userScoreDictionary[username_request] = 0
 			conn.sendall('New username and password created!\n\n')
 			break
 	#end of password_request do_while loop
@@ -183,7 +190,7 @@ def clientthread(conn):
 			conn.sendall('See you next time!\n')
 			#TODO: sign out from server
 			clientArray.remove(conn)
-			break default value
+			break
 		else:
 			conn.sendall('\nERROR: Enter valid choice\n\n')
 	#came out of loop

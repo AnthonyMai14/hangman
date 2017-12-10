@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1111	# Arbitrary non-privileged port
+PORT = 1112	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -107,23 +107,23 @@ class Game:
 	def existInCorrectGuess(self, guess):
 		for letter in range(len(self.correctGuess)):
 			if self.correctGuess[letter] == guess:
-				return letter
+				return True
 			#end if
 		#end for
-		return -1
+		return False
 	#end def
 
 	def findletter(self, guess):
+		found = False
 		for letter in range(len(self.word)):
-			if self.word[letter] == guess and self.existInCorrectGuess(guess) == -1:
+			if self.word[letter] == guess:
 				correctGuessList = list(self.correctGuess)
-				print 'List size: ' + str(len(correctGuessList)) + '\n'
 				correctGuessList[letter] = guess
 				self.correctGuess = ''.join(correctGuessList)
-				return letter
+				found = True
 			#end if
 		#end for
-		return -1
+		return found
 	def begin(self):
 		print str(self.guessesLeft) #TODO: delete after use TODO
 		while self.guessesLeft != 0 and self.correctGuess != self.word: 
@@ -148,7 +148,7 @@ class Game:
 			guess = guess.rstrip()
 			if len(guess) == 1:
 				#find if guess is in word // duplicate guess
-				if self.findletter(guess) != -1:
+				if self.existInCorrectGuess(guess) == False  and self.findletter(guess):
 					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
 					current_player.points = current_player.points + 1
 				else:

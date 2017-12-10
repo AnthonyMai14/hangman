@@ -4,12 +4,13 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1112	# Arbitrary non-privileged port
+PORT = 1111	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
 userScoreDictionary = {} #username: score
-highScorerList = ['']*10 #username (by rank)
+
+hofList = ['']*10 #username (by rank)
 
 wordbankList = ['ucr','anthony', 'cs', 'sd'] #default values
 activeGameList = []
@@ -124,23 +125,27 @@ class Game:
 			#end if
 		#end for
 		return found
+	
+	def print_hangman(self):
+		#print correct guess/incorrect guesses/ on menu
+		for player in self.playersInGameList:
+			print 'Player:' + str(player) 
+			conn = player.conn
+			conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\nGuesses Left: ' + str(self.guessesLeft) + '\n')		
+			#print players // print which players turn
+			for name in range(len(self.playersInGameList)):
+				conn.sendall(self.playersInGameList[name].username + ' ' + str(self.playersInGameList[name].points))
+				if name == self.playerTurn:
+					#name of player's turn, insert '*' at the end
+					conn.sendall('*')
+				#end if name == playerTurn
+				conn.sendall('\n')
+			#end for name in len(playerInGameList)
+		#end for player in playersInGameList
+
 	def begin(self):
-		print str(self.guessesLeft) #TODO: delete after use TODO
 		while self.guessesLeft != 0 and self.correctGuess != self.word: 
-			#print correct guess/incorrect guesses/ on menu
-			for player in self.playersInGameList:
-				conn = player.conn
-				conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\n')		
-				#print players // print which players turn
-				for name in range(len(self.playersInGameList)):
-					conn.sendall(self.playersInGameList[name].username + ' ' + str(self.playersInGameList[name].points))
-					if name == self.playerTurn:
-						#name of player's turn, insert '*' at the end
-						conn.sendall('*')
-					#end if name == playerTurn
-					conn.sendall('\n')
-				#end for name in len(playerInGameList)
-			#end for player in playersInGameList
+			self.print_hangman()
 			#TODO: wait response from player's who turn it is
 			current_player = self.playersInGameList[self.playerTurn]
 			conn = current_player.conn
@@ -150,7 +155,7 @@ class Game:
 				#find if guess is in word // duplicate guess
 				if self.existInCorrectGuess(guess) == False  and self.findletter(guess):
 					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
-					current_player.points = current_player.points + 1
+					self.playersInGameList[self.playerTurn] = current_player.points + 1
 				else:
 					self.incorrectGuess = self.incorrectGuess + guess
 					self.guessesLeft = self.guessesLeft - 1
@@ -159,16 +164,34 @@ class Game:
 						self.playerTurn = 0
 					else:
 						self.playerTurn = self.playerTurn + 1 
-		#	else:
-				#TODO: if guess is correct, add point worth to the length of word in addition to the points already have
-				#TODO: if incorrect, get kicked out of game 
-		#end while guessesLeft != 0 .....
+			else:
+				#if guess is correct, add point worth to the length of word in addition to the points already have
+				if guess == self.word:
+					self.playersInGameList[self.playerTurn].points = current_player.points + len(self.word)
+				else:
+					#if incorrect, get kicked out of game
+					del self.playersInGameList[self.playerTurn]
+			
+			#if the word is guessed, print_hangman(), see if player can be add to HOF, End Game
+			if guess == self.word:
+				self.print_hangman()
+				#TODO: Check to see if can be added to HOF
+				for index in hofList:
+					if hofList[index] == '':
+						hofList[index] = self.playersInGameList[self.playerTurn].username
+						userScoreDictionary[hofList[index]] =  self.playersInGameList[self.playerTurn].points
+					#elif self.playersInGameList[self.playerTurn].points > hofList[index]:
+						#TODO: replace & shift
+				#TODO: End Game & take out of activeGameList
+			#end if guess == self.word
+			
+		#end while self.guessesLeft != 0 and self.correctGuess != self.word
 	#end begin()
 	def start(self, conn):
 		self.start_menu(conn)
 		self.randomWord()
 		self.setDifficulty()
-		#generate '_' for users
+		#generate '_' for users	
 		for letter in range(len(self.word)):
 			self.correctGuess = self.correctGuess + '_'
 		#end for letter in len(word)
@@ -182,17 +205,17 @@ class Game:
 #hall of fame function: print out the top 10 scorers. If not present, will print out empty list
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-\n')
-	for val in range(len(highScorerList)):
+	for val in range(len(hofList)):
 		conn.sendall(str(val+1) + '. ')
-		username = highScorerList[val]
+		username = hofList[val]
 		if username:			 
 			print "in if loop\n"
 			score = userScoreDictionary[username]
-			conn.sendall(highScorerList[val] + ': ' + score + '\n')
+			conn.sendall(hofList[val] + ': ' + score + '\n')
 		else:
 			conn.sendall('\n')
 	conn.sendall('\n')
-	#end for val in highScorerList			
+	#end for val in hofList			
 #end hall_of_fame()	
 #------------------------------------------------------
 

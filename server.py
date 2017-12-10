@@ -116,7 +116,10 @@ class Game:
 	def findletter(self, guess):
 		for letter in range(len(self.word)):
 			if self.word[letter] == guess and self.existInCorrectGuess(guess) == -1:
-				self.correctGuess = self.correctGuess.replace(letter,guess)
+				correctGuessList = list(self.correctGuess)
+				print 'List size: ' + str(len(correctGuessList)) + '\n'
+				correctGuessList[letter] = guess
+				self.correctGuess = ''.join(correctGuessList)
 				return letter
 			#end if
 		#end for

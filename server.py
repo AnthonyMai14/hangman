@@ -43,7 +43,8 @@ class Player:
 #------------------------------------------------------
 class Game:
 		
-	def __init__(self, newPlayer):
+	def __init__(self, newPlayer, gId):
+		self.gId = gId
 		self.difficulty = 1 #default difficulty to Easy (1)
 		self.word = ''
 		self.playersInGameList = []
@@ -145,7 +146,7 @@ class Game:
 		wordIsGuessed = False
 		while self.guessesLeft != 0 and self.correctGuess != self.word: 
 			self.print_hangman()
-			#TODO: wait response from player's who turn it is
+			#wait response from player's who turn it is
 			current_player = self.playersInGameList[self.playerTurn]
 			conn = current_player.conn
 			guess = conn.recv(1024)
@@ -177,7 +178,7 @@ class Game:
 			#if the word is guessed, print_hangman(), see if player can be add to HOF, End Game
 			if wordIsGuessed:
 				self.print_hangman()
-				#TODO: Check to see if can be added to HOF
+				#Check to see if can be added to HOF
 				for index in range(len(hofList)):
 					if hofList[index] == '':
 						hofList[username] = self.playersInGameList[self.playerTurn]
@@ -187,10 +188,13 @@ class Game:
 									hofList[backward] = hofList[backward - 1]
 								#end for-loop
 								hofList[index] = self.playersInGameList[self.playerTurn]
-				#TODO: End Game & take out of activeGameList
+				
 			#end if guess == self.word
 			
 		#end while self.guessesLeft != 0 and self.correctGuess != self.word
+		
+		#End Game & take out of activeGameList
+		activeGameList.pop(self.gId)
 	#end begin()
 	def start(self, conn):
 		self.start_menu(conn)
@@ -235,7 +239,7 @@ def game_menu(conn, player):
 			#Start New game. Return flag: determin if break or not
 			activeGameList_length = len(activeGameList)
 			if activeGameList_length != len(wordbankList) or activeGameList_length == 0:
-				newGame = Game(player)
+				newGame = Game(player, activeGameList_length)
 				activeGameList.append(newGame)
 				newGame.start(conn)
 		elif game_choice[0] == '2':

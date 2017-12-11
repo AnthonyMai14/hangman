@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1111	# Arbitrary non-privileged port
+PORT = 1112	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -126,10 +126,11 @@ class Game:
 		#end for
 		return found
 	
+	#print correct guess/incorrect guesses/ on menu
 	def print_hangman(self):
-		#print correct guess/incorrect guesses/ on menu
+		#iterate through the players that are in the current game
 		for player in self.playersInGameList:
-			print 'Player:' + str(player) 
+			print 'Player: '+ str(player)
 			conn = player.conn
 			conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\nGuesses Left: ' + str(self.guessesLeft) + '\n')		
 			#print players // print which players turn
@@ -144,6 +145,7 @@ class Game:
 		#end for player in playersInGameList
 
 	def begin(self):
+		wordIsGuessed = False
 		while self.guessesLeft != 0 and self.correctGuess != self.word: 
 			self.print_hangman()
 			#TODO: wait response from player's who turn it is
@@ -156,6 +158,8 @@ class Game:
 				if self.existInCorrectGuess(guess) == False  and self.findletter(guess):
 					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
 					self.playersInGameList[self.playerTurn] = current_player.points + 1
+					if self.correctGuess == self.word:
+						wordIsGuessed = True  
 				else:
 					self.incorrectGuess = self.incorrectGuess + guess
 					self.guessesLeft = self.guessesLeft - 1
@@ -163,17 +167,18 @@ class Game:
 					if self.playerTurn + 1 == len(self.playersInGameList):
 						self.playerTurn = 0
 					else:
-						self.playerTurn = self.playerTurn + 1 
+						self.playerTurn = self.playerTurn + 1
 			else:
 				#if guess is correct, add point worth to the length of word in addition to the points already have
 				if guess == self.word:
 					self.playersInGameList[self.playerTurn].points = current_player.points + len(self.word)
+					wordIsGuessed = True
 				else:
 					#if incorrect, get kicked out of game
 					del self.playersInGameList[self.playerTurn]
 			
 			#if the word is guessed, print_hangman(), see if player can be add to HOF, End Game
-			if guess == self.word:
+			if wordIsGuessed:
 				self.print_hangman()
 				#TODO: Check to see if can be added to HOF
 				for index in hofList:

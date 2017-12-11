@@ -8,9 +8,8 @@ PORT = 1111	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
-userScoreDictionary = {} #username: score
 
-hofList = ['']*10 #username (by rank)
+hofList = ['']*10 #list of players
 
 wordbankList = ['ucr','anthony', 'cs', 'sd'] #default values
 activeGameList = []
@@ -35,7 +34,6 @@ class Player:
 	def __init__(self, conn, username):
 		self.conn = conn
 		self.username = username
-		self.active = 1 #1 is active, 0 is not-active/no longer is/should be in game
 		self.points = 0 #default points is zero for each new game/join game
 	
 #end of class Player 
@@ -180,12 +178,15 @@ class Game:
 			if wordIsGuessed:
 				self.print_hangman()
 				#TODO: Check to see if can be added to HOF
-				for index in hofList:
+				for index in range(len(hofList)):
 					if hofList[index] == '':
-						hofList[index] = self.playersInGameList[self.playerTurn].username
-						userScoreDictionary[hofList[index]] =  self.playersInGameList[self.playerTurn].points
-					#elif self.playersInGameList[self.playerTurn].points > hofList[index]:
-						#TODO: replace & shift
+						hofList[username] = self.playersInGameList[self.playerTurn]
+					elif self.playersInGameList[self.playerTurn].points > hofList[index].points:
+								#need to consider case if inserting into index == 10
+								for backward in range(len(hofList) - 1 ,index + 1, -1):
+									hofList[backward] = hofList[backward - 1]
+								#end for-loop
+								hofList[index] = self.playersInGameList[self.playerTurn]
 				#TODO: End Game & take out of activeGameList
 			#end if guess == self.word
 			
@@ -209,13 +210,11 @@ class Game:
 #hall of fame function: print out the top 10 scorers. If not present, will print out empty list
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-\n')
-	for val in range(len(hofList)):
-		conn.sendall(str(val+1) + '. ')
-		username = hofList[val]
-		if username:			 
-			print "in if loop\n"
-			score = userScoreDictionary[username]
-			conn.sendall(hofList[val] + ': ' + score + '\n')
+	val = 1
+	for item in hofList:
+		conn.sendall(str(val) + '. ')
+		if item != '':			 
+			conn.sendall(username + ': ' + str(hofList[username]) + '\n')
 		else:
 			conn.sendall('\n')
 	conn.sendall('\n')
@@ -412,7 +411,6 @@ def serverthread(s_conn):
 			print '\n'
 			#end for-loop
 		elif server_choice == '3':
-			word_not_valid = True
 			word_to_add = ""
 			while True:
 				word_to_add = raw_input('Word to add (\'!q\' to return to main menu): ')

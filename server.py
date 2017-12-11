@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1112	# Arbitrary non-privileged port
+PORT = 1111	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -76,7 +76,7 @@ class Game:
 			conn.sendall('\nChoose the difficulty:\n1.Easy\n2.Medium\n3.Hard\n\n-Choice: ')
 			game_start_choice = conn.recv(1024)
 			if not game_start_choice:
-				conn.sendall('ERROR: NULL input!\n')
+				conn.sendall('***ERROR: NULL input!\n')
 				break
 			elif game_start_choice[0] == '1':
 				if len(activeGameList) != len(wordbankList):
@@ -231,7 +231,7 @@ def game_menu(conn, player):
 		conn.sendall('1.Start New Game\n2.Get list of the Games\n3.Hall of Fame\n4.Exit\n\n-Choice: ')
 		game_choice = conn.recv(1024)
 		if not game_choice:
-			conn.sendall('ERROR: NULL input!\n')
+			conn.sendall('***ERROR: NULL input!\n')
 			break
 		elif game_choice[0] == '1':
 			#Start New game. Return flag: determin if break or not
@@ -252,7 +252,7 @@ def game_menu(conn, player):
 			clientList.remove(conn)
 			break
 		else:
-			conn.sendall('\nERROR: Enter valid choice\n\n')
+			conn.sendall('\n***ERROR: Enter valid choice\n\n')
 	#came out of loop
 
 #------------------------------------------------------
@@ -311,14 +311,14 @@ def sign_up(conn):
 		username_request = username_request.rstrip()
 		#TODO: check to see if username is valid/availble
 		if not username_request:
-			conn.sendall('\nERROR: Your username is invalid. Please type again or try another one.\n')
+			conn.sendall('\n******ERROR: Your username is invalid. Please type again or try another one.\n')
 		elif username_request == '!q':
 			#go back to main_menu
 			clientthread(conn)
 		else:
 			#TODO: check for special characters (i.e.' ','/','.',etc.). If in username, invalid
 			if userExist(username_request):
-				conn.sendall('\nERROR: Your username already exist. Please try another username.\n')
+				conn.sendall('\n***ERROR: Your username already exist. Please try another username.\n')
 			else:
 				break
 	#end of username_request do_while loop
@@ -328,7 +328,7 @@ def sign_up(conn):
 		password_request = conn.recv(1024)
 		password_request = password_request.rstrip()
 		if not password_request:
-			conn.sendall('\nERROR: Your password is invalid, Please type again or try another one.\n')
+			conn.sendall('\n***ERROR: Your password is invalid, Please type again or try another one.\n')
 		elif password_request == '!q':
 			#go back to main_menu
 			clientthread(conn)
@@ -376,11 +376,56 @@ def clientthread(conn):
 			clientList.remove(conn)
 			break
 		else:
-			conn.sendall('\nERROR: Enter valid choice\n\n')
+			conn.sendall('\n***ERROR: Enter valid choice\n\n')
 	#came out of loop
 	conn.close()
 
+def word_true_valid(word_to_add):
+	#check if have special character
+	if word_to_add.isalpha() == False:
+		print ('\n***ERROR: Invalid Character. Alphabetic characters only!\n\n')
+		return False
+	#check if already exist in wordbankList
+	for word in wordbankList:
+		if  word == word_to_add:
+			print ('\n***ERROR: \''+ word_to_add +'\' already exist in word bank! Please try another word.\n')
+			return False
+		#end if
+	#end for-loop
+	return True
+
+def serverthread(s_conn):
+	while True:
+		server_choice = raw_input('-HANGMAN SERVER MENU-\n1.Current List of Users\n2.Current List of Words\n3.Add New Word to List of Words\n\n-Choice: ')
+		if server_choice == '1':
+			print '-List of Users-\n'
+			if len(userDictionary) == 0:
+				print ('No users!\n')
+			for user in userDictionary:
+				print (user + '\n')
+			#end for-loop
+		elif server_choice == '2':
+			print '-List of Words-\n'
+			if len(wordbankList) == 0:
+				print ('Empty word bank!\n')
+			for word in wordbankList:
+				print word
+			print '\n'
+			#end for-loop
+		elif server_choice == '3':
+			word_not_valid = True
+			word_to_add = ""
+			while True:
+				word_to_add = raw_input('Word to add (\'!q\' to return to main menu): ')
+				if word_to_add == '!q':
+					break
+				if word_true_valid(word_to_add):
+					print ('\n\n\'' + word_to_add + '\' added to word bank..\n')
+					break
+			#end while-loop
 #now keep talking with the client
+
+start_new_thread(serverthread, (0,))
 while 1:
 	#wait to ac default valuecept a connection - blocking call
 	conn, addr = s.accept()

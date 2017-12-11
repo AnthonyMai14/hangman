@@ -129,9 +129,8 @@ class Game:
 	#print correct guess/incorrect guesses/ on menu
 	def print_hangman(self):
 		#iterate through the players that are in the current game
-		for player in self.playersInGameList:
-			print 'Player: '+ str(player)
-			conn = player.conn
+		for player in range(len(self.playersInGameList)):
+			conn = self.playersInGameList[player].conn
 			conn.sendall(self.correctGuess + '\n' + 'Incorrect letters: ' + self.incorrectGuess + '\nGuesses Left: ' + str(self.guessesLeft) + '\n')		
 			#print players // print which players turn
 			for name in range(len(self.playersInGameList)):
@@ -420,6 +419,7 @@ def serverthread(s_conn):
 				if word_to_add == '!q':
 					break
 				if word_true_valid(word_to_add):
+					wordbankList.append(word_to_add)
 					print ('\n\n\'' + word_to_add + '\' added to word bank..\n')
 					break
 			#end while-loop

@@ -4,7 +4,7 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1112	# Arbitrary non-privileged port
+PORT = 1111	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
@@ -154,7 +154,7 @@ class Game:
 			guess = guess.rstrip()
 			if len(guess) == 1:
 				#find if guess is in word // duplicate guess
-				if self.existInCorrectGuess(guess) == False:
+				if self.existInCorrectGuess(guess) == False and self.findletter(guess) != 0:
 					valid_letter = self.findletter(guess)
 					if valid_letter != 0:
 						#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
@@ -203,7 +203,6 @@ class Game:
 		#end while self.guessesLeft != 0 and self.correctGuess != self.word
 		
 		#End Game & take out of activeGameList
-		activeGameList.pop(self.gId)
 	#end begin()
 	def start(self, conn):
 		self.start_menu(conn)
@@ -214,6 +213,7 @@ class Game:
 			self.correctGuess = self.correctGuess + '_'
 		#end for letter in len(word)
 		self.begin()
+		activeGameList.pop(self.gId)
 	#end game_start()
 #end of class Game
 #------------------------------------------------------
@@ -267,12 +267,13 @@ def game_menu(conn, username_entry):
 				choice_join = choice_join.rstrip()
 				if (choice_join == '!q'):
 					break
-				elif (int(choice_join) <= (len(activeGameList) - 1) and choice_join != '0'):
+				elif (int(choice_join) <= (len(activeGameList)) and choice_join != '0'):
 					player = Player(conn, username_entry) #set new instance of player 
-					activeGameList[choice_join - 1].playersInGameList.append(player)
+					activeGameList[int(choice_join) - 1].playersInGameList.append(player)
+					activeGameList[int(choice_join) - 1].begin()
 					break
 				else:
-					conn.sendall('\n\n***ERROR: Invalid choice! Please try again.')
+					conn.sendall('\n\n***ERROR: Invalid choice! Please try again.\n')
 		elif game_choice[0] == '3':
 			#hall of fame
 			hall_of_fame(conn)

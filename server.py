@@ -114,13 +114,13 @@ class Game:
 	#end def
 
 	def findletter(self, guess):
-		found = False
+		found = 0
 		for letter in range(len(self.word)):
 			if self.word[letter] == guess:
 				correctGuessList = list(self.correctGuess)
 				correctGuessList[letter] = guess
 				self.correctGuess = ''.join(correctGuessList)
-				found = True
+				found = found + 1
 			#end if
 		#end for
 		return found
@@ -154,11 +154,13 @@ class Game:
 			guess = guess.rstrip()
 			if len(guess) == 1:
 				#find if guess is in word // duplicate guess
-				if self.existInCorrectGuess(guess) == False  and self.findletter(guess):
-					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
-					self.playersInGameList[self.playerTurn].points = current_player.points + 1
-					if self.correctGuess == self.word:
-						wordIsGuessed = True  
+				if self.existInCorrectGuess(guess) == False:
+					valid_letter = self.findletter(guess)
+					if valid_letter != 0:
+						#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
+						self.playersInGameList[self.playerTurn].points = current_player.points + valid_letter
+						if self.correctGuess == self.word:
+							wordIsGuessed = True  
 				else:
 					self.incorrectGuess = self.incorrectGuess + guess
 					self.guessesLeft = self.guessesLeft - 1
@@ -171,7 +173,7 @@ class Game:
 				#if guess is correct, add point worth to the length of word in addition to the points already have
 				if guess == self.word:
 					self.playersInGameList[self.playerTurn].points = current_player.points + len(self.word)
-					correctGuess = guess
+					self.correctGuess = guess
 					wordIsGuessed = True
 				else:
 					#if incorrect, get kicked out of game

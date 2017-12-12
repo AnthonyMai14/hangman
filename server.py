@@ -4,14 +4,14 @@ import random
 from thread import *
 
 HOST = ''	# Symobolic name meaning all avaiable interfaces
-PORT = 1111	# Arbitrary non-privileged port
+PORT = 1112	# Arbitrary non-privileged port
 
 clientList = []
 userDictionary = {} #username: password
 
 hofList = ['']*10 #list of players
 
-wordbankList = ['ucr','anthony', 'cs', 'sd'] #default values
+wordbankList = ['ucr','anthony', 'yeet', 'sd'] #default values
 activeGameList = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -156,11 +156,7 @@ class Game:
 				#find if guess is in word // duplicate guess
 				if self.existInCorrectGuess(guess) == False  and self.findletter(guess):
 					#if correct, add point. if duplicate move on. if wrong guess add word to wrong guess and decrement guesesLeft
-					print 'Player turn points: ' + str(self.playersInGameList[self.playerTurn].points) + '\n' 
-					print 'Current player points: ' + str(current_player.points) +'\n' #TODO delete when done
-				
 					self.playersInGameList[self.playerTurn].points = current_player.points + 1
-					print 'Player turn points after: ' + str(self.playersInGameList[self.playerTurn].points) + '\n' 
 					if self.correctGuess == self.word:
 						wordIsGuessed = True  
 				else:
@@ -175,11 +171,13 @@ class Game:
 				#if guess is correct, add point worth to the length of word in addition to the points already have
 				if guess == self.word:
 					self.playersInGameList[self.playerTurn].points = current_player.points + len(self.word)
+					correctGuess = guess
 					wordIsGuessed = True
 				else:
 					#if incorrect, get kicked out of game
+					conn.sendall('Incorrect word guess. Thanks for playing!\n')
 					del self.playersInGameList[self.playerTurn]
-			
+					break #TODO: potenail bug with multiple players
 			#if the word is guessed, print_hangman(), see if player can be add to HOF, End Game
 			if wordIsGuessed:
 				self.print_hangman()
@@ -187,13 +185,17 @@ class Game:
 				for index in range(len(hofList)):
 					if hofList[index] == '':
 						hofList[index] = self.playersInGameList[self.playerTurn]
+						break
+					elif self.playersInGameList[self.playerTurn].points == hofList[index].points:
+						break
 					elif self.playersInGameList[self.playerTurn].points > hofList[index].points:
 								#need to consider case if inserting into index == 10
-								for backward in range(len(hofList) - 1 ,index + 1, -1):
+								for backward in xrange(len(hofList) - 1 ,index, -1):
 									hofList[backward] = hofList[backward - 1]
 								#end for-loop
 								hofList[index] = self.playersInGameList[self.playerTurn]
-				
+								break
+				#restart points
 			#end if guess == self.word
 			
 		#end while self.guessesLeft != 0 and self.correctGuess != self.word
@@ -220,14 +222,12 @@ class Game:
 def hall_of_fame(conn):
 	conn.sendall('-Hall Of Fame-\n')
 	val = 1
-	flag = 1
 	for item in hofList:
 		conn.sendall(str(val) + '. ')
-		if flag and item != '':			 
+		if item != '':			 
 			conn.sendall(item.username + ': ' + str(item.points) + '\n')
-			flag = 0
 		else:
-			conn.sendall('\n')
+			conn.sendall(': \n')
 		val = val + 1
 	conn.sendall('\n')
 	#end for val in hofList			
@@ -235,7 +235,7 @@ def hall_of_fame(conn):
 #------------------------------------------------------
 
 #game_menu function: user will be able to choose if they want to be part of a new game or jump onto one going on
-def game_menu(conn, player):
+def game_menu(conn, username_entry):
 	conn.sendall('-Game Menu-\n\n')
 	while True:
 		conn.sendall('1.Start New Game\n2.Get list of the Games\n3.Hall of Fame\n4.Exit\n\n-Choice: ')
@@ -247,6 +247,7 @@ def game_menu(conn, player):
 			#Start New game. Return flag: determin if break or not
 			activeGameList_length = len(activeGameList)
 			if activeGameList_length != len(wordbankList) or activeGameList_length == 0:
+				player = Player(conn, username_entry) #set new instance of player 
 				newGame = Game(player, activeGameList_length)
 				activeGameList.append(newGame)
 				newGame.start(conn)
@@ -265,6 +266,7 @@ def game_menu(conn, player):
 				if (choice_join == '!q'):
 					break
 				elif (int(choice_join) <= (len(activeGameList) - 1) and choice_join != '0'):
+					player = Player(conn, username_entry) #set new instance of player 
 					activeGameList[choice_join - 1].playersInGameList.append(player)
 					break
 				else:
@@ -321,8 +323,7 @@ def login(conn):
 		else:
 			conn.sendall('\nInvalid username or password. Please try again\n\n')
 	#end of login do_while loop
-	player = Player(conn, username_entry) #set new instance of player 
-	game_menu(conn,player) #conn in paramter because want to make game_menu light when trying to print to conn
+	game_menu(conn, username_entry)
 #end of login()
 #------------------------------------------------------
 
